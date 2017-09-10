@@ -1,3 +1,7 @@
+import os
+import struct
+
+
 class InsufficientEntropyError(Exception):
 
     """
@@ -16,6 +20,13 @@ class EntropyDrop(object):
         """
         self.n = n
         self.max_n = max_n
+
+
+class EntropySources(object):
+
+    @staticmethod
+    def urandom():
+        return EntropyDrop(struct.unpack('!Q', os.urandom(8))[0], 18446744073709551616)
 
 
 class EntropyPool(object):

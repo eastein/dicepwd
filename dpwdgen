@@ -10,18 +10,23 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--chars', type=int, dest='chars', help="How many characters are desired")
     parser.add_argument('-d', '--die-size', dest='die_size', type=int,
                         help="How many sides your dies have (mixed side counts not allowed)")
+    parser.add_argument('--urandom', dest='use_urandom', action='store_true',
+                        help="Select this to use /dev/urandom rather than actually rolling dice.")
     args = parser.parse_args()
 
     character_class = dicepwd.charclasses.CharacterClass([chr(i) for i in range(33, 126)])
 
-    def read_dice():
-        while True:
-            try:
-                return dicepwd.epool.EntropyDrop(int(input('Roll d%d: ' % args.die_size)) - 1, args.die_size)
-            except ValueError:
-                print('Not an integer. Try again.')
+    if args.use_urandom:
+        entropy_source = dicepwd.epool.EntropySources.urandom
+    else:
+        def entropy_source():
+            while True:
+                try:
+                    return dicepwd.epool.EntropyDrop(int(input('Roll d%d: ' % args.die_size)) - 1, args.die_size)
+                except ValueError:
+                    print('Not an integer. Try again.')
 
-    pool = dicepwd.epool.EntropyPool(entropy_source=read_dice)
+    pool = dicepwd.epool.EntropyPool(entropy_source=entropy_source)
 
     try:
         password = ''.join([
